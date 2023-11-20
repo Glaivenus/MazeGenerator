@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>迷宫数组生成器（钻孔法）</title>
+<style>
+.maze-row {
+  display: flex;
+}
+
+.wall-cell {
+  width: 20px;
+  height: 20px;
+  background-color: black;
+  border: 1px solid white;
+}
+
+.road-cell {
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border: 1px solid black;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.array-text {
+  font-family: monospace;
+  white-space: nowrap;
+  overflow-x: auto;
+  margin-top: 10px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>迷宫数组生成器（钻孔法）</h1>
+  <label for="widthInput">横向长度：</label>
+  <input type="number" id="widthInput" value="20"><br>
+  <label for="heightInput">竖向长度：</label>
+  <input type="number" id="heightInput" value="20"><br>
+  <button onclick="generateMaze()">生成迷宫</button>
+  <div id="mazeContainer"></div>
+  <h2>迷宫数组：</h2>
+  <div class="array-text" id="arrayContainer"></div>
+</div>
+<script>
+function generateMaze() {
+  const width = parseInt(document.getElementById("widthInput").value);
+  const height = parseInt(document.getElementById("heightInput").value);
+
+  const maze = [];
+
+  for (let i = 0; i < height; i++) {
+    const row = [];
+    for (let j = 0; j < width; j++) {
+      row.push(1); // Fill the maze with walls initially
+    }
+    maze.push(row);
+  }
+
+  drillMaze(maze, 1, 1);
+
+  displayMaze(maze);
+  displayArray(maze);
+}
+
+function drillMaze(maze, row, col) {
+  maze[row][col] = 0; // Drill a hole
+
+  const directions = shuffleDirections();
+  for (const direction of directions) {
+    const newRow = row + direction[0] * 2;
+    const newCol = col + direction[1] * 2;
+
+    if (newRow > 0 && newRow < maze.length - 1 && newCol > 0 && newCol < maze[0].length - 1 && maze[newRow][newCol] === 1) {
+      maze[row + direction[0]][col + direction[1]] = 0; // Drill a hole
+      drillMaze(maze, newRow, newCol);
+    }
+  }
+}
+
+function shuffleDirections() {
+  const directions = [[0, -1], [0, 1], [-1, 0], [1, 0]];
+  for (let i = directions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [directions[i], directions[j]] = [directions[j], directions[i]];
+  }
+  return directions;
+}
+
+function displayMaze(maze) {
+  const mazeContainer = document.getElementById("mazeContainer");
+  mazeContainer.innerHTML = "";
+
+  for (const row of maze) {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "maze-row";
+    
+    for (const cell of row) {
+      const cellDiv = document.createElement("div");
+      cellDiv.className = cell === 1 ? "wall-cell" : "road-cell";
+      rowDiv.appendChild(cellDiv);
+    }
+
+    mazeContainer.appendChild(rowDiv);
+  }
+}
+
+function displayArray(maze) {
+  const arrayContainer = document.getElementById("arrayContainer");
+  arrayContainer.innerHTML = "";
+
+  const arrayText = JSON.stringify(maze).replace(/\],/g, "],\n");
+  const arrayPre = document.createElement("pre");
+  arrayPre.textContent = arrayText;
+  
+  const copyButton = document.createElement("button");
+  copyButton.textContent = "复制数组";
+  copyButton.addEventListener("click", () => {
+    copyTextToClipboard(arrayText);
+  });
+  
+  arrayContainer.appendChild(arrayPre);
+  arrayContainer.appendChild(copyButton);
+}
+
+function copyTextToClipboard(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.select();
+  document.execCommand("copy");
+  document.body.removeChild(textArea);
+}
+</script>
+</body>
+</html>
